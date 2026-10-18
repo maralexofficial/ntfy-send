@@ -22,11 +22,31 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
   --prio=*)
     PRIORITY="${1#--prio=}"
+
+    if [[ -z "$PRIORITY" ]]; then
+      echo "Error: --prio requires a non-empty value." >&2
+      exit 1
+    fi
+
     shift
+    ;;
+  --prio)
+    echo "Error: --prio requires a value. Use --prio=1-5." >&2
+    exit 1
     ;;
   --tags=*)
     TAGS="${1#--tags=}"
+
+    if [[ -z "$TAGS" ]]; then
+      echo "Error: --tags requires a non-empty value." >&2
+      exit 1
+    fi
+
     shift
+    ;;
+  --tags)
+    echo "Error: --tags requires a value. Use --tags=a,b." >&2
+    exit 1
     ;;
   --topic=*)
     CUSTOM_TOPIC="${1#--topic=}"
@@ -37,6 +57,10 @@ while [[ $# -gt 0 ]]; do
     fi
 
     shift
+    ;;
+  --topic)
+    echo "Error: --topic requires a value. Use --topic=NAME." >&2
+    exit 1
     ;;
   -h|--help)
     echo "Usage: $(basename "$0") [topic|DEFAULT] [title] \"message\" [--topic=NAME] [--prio=1-5] [--tags=a,b]"
