@@ -91,7 +91,7 @@ if [ -n "$TAGS" ]; then
 fi
 
 printf "%s" "$MESSAGE" | curl "${CURL_HEADERS[@]}" \
-  -u "$USER:$PASSWORD" \
+  -H "Authorization: Bearer $TOKEN" \
   --data-binary @- \
   "$SERVER/$TOPIC" \
   >/dev/null 2>&1
