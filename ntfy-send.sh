@@ -14,6 +14,7 @@ fi
 PRIORITY=""
 TAGS=""
 TITLE=""
+CUSTOM_TOPIC=""
 
 POSITIONAL=()
 
@@ -27,8 +28,12 @@ while [[ $# -gt 0 ]]; do
     TAGS="${1#--tags=}"
     shift
     ;;
-  -h)
-    echo "Usage: $(basename $0) [topic|DEFAULT] [title] \"message\" [--prio=1-5] [--tags=a,b]"
+  --topic=*)
+    CUSTOM_TOPIC="${1#--topic=}"
+    shift
+    ;;
+  -h|--help)
+    echo "Usage: $(basename "$0") [topic|DEFAULT] [title] \"message\" [--topic=NAME] [--prio=1-5] [--tags=a,b]"
     exit 0
     ;;
   *)
@@ -75,6 +80,15 @@ case "$#" in
   exit 1
   ;;
 esac
+
+if [ -n "$CUSTOM_TOPIC" ]; then
+  TOPIC="$CUSTOM_TOPIC"
+fi
+
+if [ -z "$TOPIC" ]; then
+  echo "No topic configured."
+  exit 1
+fi
 
 CURL_HEADERS=()
 
