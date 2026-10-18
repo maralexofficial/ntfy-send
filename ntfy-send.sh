@@ -7,7 +7,7 @@ if [ -f "$ENV_FILE" ]; then
   source "$ENV_FILE"
   set +a
 else
-  echo "Env file not found: $ENV_FILE"
+  echo "Error: Env file not found: $ENV_FILE" >&2
   exit 1
 fi
 
@@ -30,6 +30,12 @@ while [[ $# -gt 0 ]]; do
     ;;
   --topic=*)
     CUSTOM_TOPIC="${1#--topic=}"
+
+    if [[ -z "$CUSTOM_TOPIC" ]]; then
+      echo "Error: --topic requires a non-empty topic name." >&2
+      exit 1
+    fi
+
     shift
     ;;
   -h|--help)
@@ -45,8 +51,8 @@ done
 
 set -- "${POSITIONAL[@]}"
 
-if [ "$#" -lt 1 ]; then
-  echo "You need at least a message."
+if [[ $# -lt 1 ]]; then
+  echo "Error: You need at least a message." >&2
   exit 1
 fi
 
@@ -76,36 +82,47 @@ case "$#" in
   fi
   ;;
 *)
-  echo "Too many arguments."
+  echo "Error: Too many arguments." >&2
   exit 1
   ;;
 esac
 
-if [ -n "$CUSTOM_TOPIC" ]; then
+if [[ -n "$CUSTOM_TOPIC" ]]; then
   TOPIC="$CUSTOM_TOPIC"
 fi
 
-if [ -z "$TOPIC" ]; then
-  echo "No topic configured."
+if [[ -z "$TOPIC" ]]; then
+  echo "Error: No topic configured. Set DEFAULT_TOPIC or provide --topic=NAME." >&2
+  exit 1
+fi
+
+if [[ -z "$SERVER" ]]; then
+  echo "Error: SERVER is not configured." >&2
+  exit 1
+fi
+
+if [[ -z "$TOKEN" ]]; then
+  echo "Error: TOKEN is not configured." >&2
   exit 1
 fi
 
 CURL_HEADERS=()
 
-if [ -n "$TITLE" ]; then
+if [[ -n "$TITLE" ]]; then
   CURL_HEADERS+=(-H "Title: $TITLE")
 fi
 
-if [ -n "$PRIORITY" ]; then
+if [[ -n "$PRIORITY" ]]; then
   CURL_HEADERS+=(-H "X-Priority: $PRIORITY")
 fi
 
-if [ -n "$TAGS" ]; then
+if [[ -n "$TAGS" ]]; then
   CURL_HEADERS+=(-H "X-Tags: $TAGS")
 fi
 
-printf "%s" "$MESSAGE" | curl "${CURL_HEADERS[@]}" \
+printf "%s" "$MESSAGE" | curl --fail --silent --show-error "${CURL_HEADERS[@]}" \
   -H "Authorization: Bearer $TOKEN" \
   --data-binary @- \
-  "$SERVER/$TOPIC" \
-  >/dev/null 2>&1
+  "$SERVER/$TOPIC"
+
+exit $?
